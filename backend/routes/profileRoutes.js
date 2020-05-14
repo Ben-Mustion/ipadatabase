@@ -5,25 +5,26 @@ const User = mongoose.model('users');
 
 module.exports = app => {
   app.put('/api/users', async (req, res) => {
-    const { userName, location, _id } = req.body;
+    console.log(req);
+    const { userName, location } = req.body;
 
-    User.findOneAndUpdate(
-      { _id: _id },
-      { userName: userName, location: location },
-      {
-        runValidators: true,
-        context: 'query',
-        new: true,
-        useFindAndModify: false,
-      },
-      (err, doc) => {
-        if (err) {
-          return res.status(500).send(err);
-          //console.log(err.errors.userName.message);
-          //return res.status(500).send(err.errors.userName.);
+    try {
+      await User.findOneAndUpdate(
+        { _id: req.user._id },
+        { userName: userName, location: location },
+        {
+          runValidators: true,
+          context: 'query',
+          new: true,
+          useFindAndModify: false,
         }
-        return res.status(200).send(doc);
-      }
-    );
+      );
+      res.json({
+        result: 'success',
+        message: 'Profile Updated Successfully!',
+      });
+    } catch (err) {
+      res.json({ result: 'error', message: 'Username Already Taken' });
+    }
   });
 };

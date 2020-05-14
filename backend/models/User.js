@@ -11,7 +11,10 @@ const userSchema = new Schema({
     unique: true,
     uniqueCaseInsensitive: true,
   },
-  location: String,
+  location: {
+    type: String,
+    required: false,
+  },
 });
 
 userSchema.plugin(uniqueValidator);

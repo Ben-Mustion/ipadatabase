@@ -1,71 +1,94 @@
-import React, { useEffect } from 'react';
-import { connect, useSelector } from 'react-redux';
+import React, { Component } from 'react';
+import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
-import { Form, Field } from 'react-final-form';
+import { Formik } from 'formik';
 import * as actions from '../../actions';
+import ProfileSchema from '../../utils/profileSchema';
 
-const ProfileNew = ({ history, updateUser, resetErrors }) => {
-  const auth = useSelector(state => state.auth);
-  const errors = useSelector(state => state.errors);
-
-  useEffect(() => {
-    resetErrors();
-  }, []);
-
-  const renderError = () => {
-    if (errors) {
-      return <div>Username already taken</div>;
-    }
+class ProfileNew extends Component {
+  showForm = ({
+    values,
+    errors,
+    touched,
+    handleChange,
+    handleSubmit,
+    setFieldValue,
+    isSubmitting,
+  }) => {
+    return (
+      <form className="ui form" onSubmit={handleSubmit}>
+        <div
+          className={
+            errors.userName && touched.userName ? 'field error' : 'field'
+          }
+        >
+          <input
+            type="text"
+            name="userName"
+            onChange={handleChange}
+            value={values.userName}
+            placeholder="Username"
+          />
+          {errors.userName && touched.userName ? (
+            <small>{errors.userName}</small>
+          ) : null}
+        </div>
+        <div
+          className={
+            errors.location && touched.location ? 'field error' : 'field'
+          }
+        >
+          <input
+            type="text"
+            name="location"
+            onChange={handleChange}
+            value={values.location}
+            placeholder="Location"
+          />
+          {errors.location && touched.location ? (
+            <small>{errors.location}</small>
+          ) : null}
+        </div>
+        <div>
+          <button
+            disabled={isSubmitting}
+            type="submit"
+            className="ui button primary"
+          >
+            Confirm
+          </button>
+        </div>
+      </form>
+    );
   };
-  return (
-    <div>
-      <Form
-        onSubmit={values => {
-          values._id = auth._id;
-          updateUser(values, history);
-        }}
-      >
-        {({ handleSubmit, pristine, form, submitting }) => (
-          <form onSubmit={handleSubmit}>
-            <div>
-              <label>Username</label>
-              <Field
-                name="userName"
-                component="input"
-                type="text"
-                placeholder="User Name"
-              />
-            </div>
-            {renderError()}
-            <div>
-              <label>Location</label>
-              <Field
-                name="location"
-                component="input"
-                type="text"
-                placeholder="Where are you from?"
-              />
-            </div>
-            <div>
-              <button type="submit" disabled={submitting}>
-                Submit
-              </button>
-              <button
-                type="button"
-                disabled={pristine || submitting}
-                onClick={() => {
-                  form.reset();
-                  resetErrors();
-                }}
-              >
-                Clear Values
-              </button>
-            </div>
-          </form>
-        )}
-      </Form>
-    </div>
-  );
+
+  render() {
+    const { history } = this.props;
+    const { updateUser } = actions;
+
+    return (
+      <div>
+        <Formik
+          initialValues={{
+            userName: '',
+            location: '',
+          }}
+          onSubmit={(values, { setSubmitting }) => {
+            console.log(values);
+            updateUser(values, history);
+            setSubmitting(false);
+          }}
+          validationSchema={ProfileSchema}
+        >
+          {props => this.showForm(props)}
+        </Formik>
+      </div>
+    );
+  }
+}
+
+const mapStateToProps = ({ auth }) => {
+  return { auth };
 };
 
-export default connect(null, actions)(withRouter(ProfileNew));
+export default connect(mapStateToProps, actions)(withRouter(ProfileNew));
